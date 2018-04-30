@@ -8,7 +8,9 @@ double sigmoid(double x) {
     return 1.0 / (1.0 + exp(-x));
 } // la funcion tanh ya está definida en la biblioteca de matemáticas.
 
-double (*g)(double x);  //esto es un puntero a alguna funcion definida luego
+double sigmoid_prime(double x){
+    return (exp(x)/((exp(x)+1)*(exp(x)+1)));
+}  //esto es un puntero a alguna funcion definida luego
 
 int main(int argc, char **argv) {
    /* Se declaran las variables siguientes:
