@@ -12,6 +12,12 @@ double sigmoid_prime(double x){
     return (exp(x)/((exp(x)+1)*(exp(x)+1)));
 }  //esto es un puntero a alguna funcion definida luego
 
+double (*g)(double x);  //esto es un puntero a alguna funcion definida luego
+
+double * forward_propagation(double * Pattern, double * ocultas, double * salida, double ** w1, double ** w2){
+
+}
+
 int main(int argc, char **argv) {
    /* Se declaran las variables siguientes:
    I = numero de neuronas de salida en la capa 2: 1, 2, …, I
@@ -31,12 +37,23 @@ int main(int argc, char **argv) {
    Pattern = arreglo para guardar los patrones en memoria
    D = arreglo para guardar las salidas esperadas en memoria
 
+   ocultas = vector de tamaño J
+   salida = vector de tamaño I
+
+   w1 = pesos neuronas entrada-neuronas ocultas
+   w2 = pesos neuronas ocultas-neuronas salidas
+   w1n = w1 modificado
+   w2n = w2 modificado
+
    */
    int I, J, K, L, P, PT, MaxEpocs, Group;
    int i, j, k, l, p, pt;  //contadores y subindices
    double eta, alfa, epsilon, fractionTrainingPatterns, azar;
    double Pattern[5000][100], D[5000][100];
    char symbol, ActivationFunction[20], Training[20], keyword[20], filename[50];
+
+   double w1[100][100], w2[100][100], w1n[100][100], w2n[100][100];
+
    FILE* fd;
 
    /* Se inicializa la semilla para numeros aleatorios (random seed) */
@@ -120,25 +137,28 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
    printf("Funcion de activacion ActivationFunction= %s\n", ActivationFunction);
    printf("Estrategia de entrenamiento Training= %s\n\n", Training);
 
+   //vectores que contienen los outputs de la capa de entrada y de la capa oculta
+   double ocultas[J], salida[I];
+
 //Lo que sigue aguí puede eliminarse. Está solo para verificar que los
 //patrones fueron leídos correctamente e ilustrar el llamado a g(x).
 
-   printf("Los patrones leídos son:\n\n");
-   for (p=0; p<P; p++) {
-       printf("p=%d: D=(%f, %f) -> Pattern=",p, D[p][0], D[p][1]);
-       for (k=0; k<=K; k++)
-          printf("%lf  ", Pattern[p][k]);
-       printf("\n");
-   }
-   printf("sigmoid(0.)=%lf, sigmoid(2.)=%lf\n", sigmoid(0.), sigmoid(2.0));
-   printf("tanh(0.)=%lf, tanh(2.)=%lf\n", tanh(0.), tanh(2.0));
-   printf("ActivationFunction = %s, g(0.)=%lf, g(2.)=%lf\n\n", ActivationFunction, g(0.), g(2.0));
-
-   printf("Se imprimen 10 numeros al azar entre -1 y 1\n");
-   for (i=1; i<=10; i++) {
-     azar = 2.0 * ((double)rand() / (double)RAND_MAX) - 1.0; //genera número aleatorio entre [-1, 1]
-     printf("%f  ", azar);
-   }
-   printf("\n");
-   exit(0);
+  //  printf("Los patrones leídos son:\n\n");
+  //  for (p=0; p<P; p++) {
+  //      printf("p=%d: D=(%f, %f) -> Pattern=",p, D[p][0], D[p][1]);
+  //      for (k=0; k<=K; k++)
+  //         printf("%lf  ", Pattern[p][k]);
+  //      printf("\n");
+  //  }
+  //  printf("sigmoid(0.)=%lf, sigmoid(2.)=%lf\n", sigmoid(0.), sigmoid(2.0));
+  //  printf("tanh(0.)=%lf, tanh(2.)=%lf\n", tanh(0.), tanh(2.0));
+  //  printf("ActivationFunction = %s, g(0.)=%lf, g(2.)=%lf\n\n", ActivationFunction, g(0.), g(2.0));
+   //
+  //  printf("Se imprimen 10 numeros al azar entre -1 y 1\n");
+  //  for (i=1; i<=10; i++) {
+  //    azar = 2.0 * ((double)rand() / (double)RAND_MAX) - 1.0; //genera número aleatorio entre [-1, 1]
+  //    printf("%f  ", azar);
+  //  }
+  //  printf("\n");
+  //  exit(0);
 }
