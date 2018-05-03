@@ -14,11 +14,18 @@ double sigmoid_prime(double x){
 
 double (*g)(double x);  //esto es un puntero a alguna funcion definida luego
 
-double * forward_propagation(double ** Pattern, double * ocultas, double * salida, double ** w1, double ** w2, int PT, int K){
+double * forward_propagation(double ** Pattern, double * ocultas, double * salida, double ** w1, double ** w2, int PT, int K, int I, int L, int J, double (*g)(double x)){
   //neuronas de entrada
-  for(int i=0; i<PT; i++){
+  //corre L patrones
+  for(int i=0; i<L; i++){
     for (int k=0; k<K; k++ ){
-          ocultas[i] += Pattern[i][k] * w1[i][k];
+          ocultas[i] += g(Pattern[i][k] * w1[i][k]);
+    }
+  }
+  //neuronas ocultas
+  for(int i=0; i<I; i++){
+    for (int k=0; k<J; k++ ){
+          salida[i] += g(w2[i][k] * ocultas[k]);
     }
   }
 }
@@ -42,10 +49,10 @@ int main(int argc, char **argv) {
    Pattern = arreglo para guardar los patrones en memoria
    D = arreglo para guardar las salidas esperadas en memoria
 
-   ocultas = vector de tamaño J
-   salida = vector de tamaño I
+   ocultas = vector de tamaño J que contiene el output de la neuronas ocultas
+   salida = vector de tamaño I que contiene el output de la neuronas de salida
 
-   w1 = pesos neuronas entrada-neuronas ocultas
+   w1 = pesos neuronas entrada-neuronas ocultas ()
    w2 = pesos neuronas ocultas-neuronas salidas
    w1n = w1 modificado
    w2n = w2 modificado
@@ -144,6 +151,8 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
 
    //vectores que contienen los outputs de la capa de entrada y de la capa oculta
    double ocultas[J], salida[I];
+
+
 
    //FORWARD PROPAGATION
    // for (i = 0; i < PT; i++){
