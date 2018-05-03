@@ -14,8 +14,13 @@ double sigmoid_prime(double x){
 
 double (*g)(double x);  //esto es un puntero a alguna funcion definida luego
 
-double * forward_propagation(double * Pattern, double * ocultas, double * salida, double ** w1, double ** w2){
-
+double * forward_propagation(double ** Pattern, double * ocultas, double * salida, double ** w1, double ** w2, int PT, int K){
+  //neuronas de entrada
+  for(int i=0; i<PT; i++){
+    for (int k=0; k<K; k++ ){
+          ocultas[i] += Pattern[i][k] * w1[i][k];
+    }
+  }
 }
 
 int main(int argc, char **argv) {
@@ -139,6 +144,11 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
 
    //vectores que contienen los outputs de la capa de entrada y de la capa oculta
    double ocultas[J], salida[I];
+
+   //FORWARD PROPAGATION
+   // for (i = 0; i < PT; i++){
+   //   for (j = 0; j )
+   // }
 
 //Lo que sigue aguí puede eliminarse. Está solo para verificar que los
 //patrones fueron leídos correctamente e ilustrar el llamado a g(x).
