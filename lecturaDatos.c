@@ -14,12 +14,27 @@ double sigmoid_prime(double x){
 
 double (*g)(double x);  //esto es un puntero a alguna funcion definida luego
 
-double * forward_propagation(double ** Pattern, double * ocultas, double * salida, double ** w1, double ** w2, int PT, int K, int I, int L, int J, double (*g)(double x)){
+/*
+Parametros:
+i = numero de patron que toca evaluar
+Pattern = matriz de patrones
+ocultas = vector de tamaño J que contiene el output de la neuronas ocultas
+salida = vector de tamaño I que contiene el output de la neuronas de salida
+w1 = pesos neuronas entrada-neuronas ocultas ()
+w2 = pesos neuronas ocultas-neuronas salidas
+PT = numero de patrones de entrenamiento
+K = numero de neuronas de entrada en la capa 0, en realidad K+1: 0, 1, 2, …, K
+I = numero de neuronas de salida en la capa 2: 1, 2, …, I
+L = numero de patrones agrupados si se usa entrenamiento hibrido
+J = numero de neuronas ocultas en la capa 1, en realidad J+1: 0, 1, 2, …, J
+g = funcion de activacion
+*/
+double * forward_propagation(int i, double ** Pattern, double * ocultas, double * salida, double ** w1, double ** w2, int PT, int K, int I, int L, int J, double (*g)(double x)){
   //neuronas de entrada
   //corre L patrones
-  for(int i=0; i<L; i++){
-    for (int k=0; k<K; k++ ){
-          ocultas[i] += g(Pattern[i][k] * w1[i][k]);
+  for (int k = 1; k<=K; k<++){
+    for (int j=1; j<J; j++ ){
+          ocultas[i] += g(Pattern[i][k] * w1[k][j]);
     }
   }
   //neuronas ocultas
@@ -52,10 +67,10 @@ int main(int argc, char **argv) {
    ocultas = vector de tamaño J que contiene el output de la neuronas ocultas
    salida = vector de tamaño I que contiene el output de la neuronas de salida
 
-   w1 = pesos neuronas entrada-neuronas ocultas ()
-   w2 = pesos neuronas ocultas-neuronas salidas
-   w1n = w1 modificado
-   w2n = w2 modificado
+   w1 = pesos neuronas entrada-neuronas ocultas (KxJ)
+   w2 = pesos neuronas ocultas-neuronas salidas (JxI)
+   w1v = w1 viejo
+   w2v = w2 viejo
 
    */
    int I, J, K, L, P, PT, MaxEpocs, Group;
@@ -64,7 +79,10 @@ int main(int argc, char **argv) {
    double Pattern[5000][100], D[5000][100];
    char symbol, ActivationFunction[20], Training[20], keyword[20], filename[50];
 
+
    double w1[100][100], w2[100][100], w1n[100][100], w2n[100][100];
+   //vectores que contienen los outputs de la capa de entrada y de la capa oculta
+   double ocultas[J], salida[I];
 
    FILE* fd;
 
@@ -108,7 +126,7 @@ int main(int argc, char **argv) {
 printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
 /* Se leen y cuentan los patrones. Cada patron posee K entradas en el archivo,
    y se agrega la entrada bias = 1 en la posicion 0 */
-   P = 0;
+   P = 1;
    while (symbol=' ', fscanf(fd, "\n%*[^,],%c", &symbol) != EOF) {
     printf("P = %d, symbol=%c\n", P, symbol);
     Pattern[P][0] = 1.0;                 // bias = 1
@@ -149,11 +167,22 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
    printf("Funcion de activacion ActivationFunction= %s\n", ActivationFunction);
    printf("Estrategia de entrenamiento Training= %s\n\n", Training);
 
-   //vectores que contienen los outputs de la capa de entrada y de la capa oculta
-   double ocultas[J], salida[I];
+   for (int k = 1; k <= K; k++){
+     for (int j = 1; j <= J; j++){
+       w1[k][j] = azar = 2.0 * ((double)rand() / (double)RAND_MAX) - 1.0; //genera número aleatorio entre [-1, 1]
+     }
+   }
 
-
-
+   for (int j = 1; j <= J; j++){
+     for (int i = 1; i <= I; i++){
+       w1[j][i] = azar = 2.0 * ((double)rand() / (double)RAND_MAX) - 1.0; //genera número aleatorio entre [-1, 1]
+     }
+   }
+   for (k=1; k<=K; k++){
+     for (j=1; j<=J; j++)
+        printf("%lf  ", w1[k][j]);
+     printf("\n");
+   }
    //FORWARD PROPAGATION
    // for (i = 0; i < PT; i++){
    //   for (j = 0; j )
