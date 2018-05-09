@@ -4,15 +4,17 @@
 #include <math.h>
 #include <time.h>
 
+
 double sigmoid(double x) {
     return 1.0 / (1.0 + exp(-x));
 } // la funcion tanh ya está definida en la biblioteca de matemáticas.
 
-double sigmoid_prime(double x){
+double sigmoid_prima(double x){
     return (exp(x)/((exp(x)+1)*(exp(x)+1)));
 }  //esto es un puntero a alguna funcion definida luego
 
 double (*g)(double x);  //esto es un puntero a alguna funcion definida luego
+double (*g_prima)(double x);  //esto es un puntero a alguna funcion definida luego
 
 /*
 Parametros:
@@ -29,66 +31,67 @@ L = numero de patrones agrupados si se usa entrenamiento hibrido
 J = numero de neuronas ocultas en la capa 1, en realidad J+1: 0, 1, 2, …, J
 g = funcion de activacion
 */
-double * forward_propagation(int i, double ** Pattern, double * ocultas, double * salida, double ** w1, double ** w2, int PT, int K, int I, int L, int J, double (*g)(double x)){
-  //neuronas de entrada
-  //corre L patrones
+
+void net_oculta(int i, int K, int J, double ** w1, double ** Pattern, double net_ocultas[]){
   for (int k = 1; k<=K; k++){
     for (int j = 1; j<J; j++ ){
-          ocultas[i] += g(Pattern[i][k] * w1[k][j]);
+          net_ocultas[j] += Pattern[i][k] * w1[k][j];
     }
   }
+}
+
+
+void y_oculta(int J, double y_oculta[],double net_oculta[], double (*g)(double x)){
+  for (int i = 0; i < J; i++){
+      y_oculta[i] = g(net_oculta[i]);
+  }
+}
+
+
+ void net_salida(int I, int J, double ** w2, double net_salida[], double y_oculta[]){
   //neuronas ocultas
   for(int i=0; i<I; i++){
     for (int k=0; k<J; k++ ){
-          salida[i] += g(w2[i][k] * ocultas[k]);
+          net_salida[i] += w2[i][k] * y_oculta[k];
     }
   }
+}
 
-} //fin de feedforward
+
+void y_salida(int I, double y_salida[],double net_salida[], double (*g)(double x)){
+  for (int i = 0; i < I; i++){
+      y_salida[i] = g(net_salida[i]);
+  }
+}
+
 
 //funcion para calcular epsilon (error maximo permitido)
-double * calculo_epsilon(int I, double * salida, double * answers){
-  double error[I] ;
-  for(int i = 0; i < I; i++){
-    error[i] = 0.5 * pow((answers[i]-salida[i]),2);
+  double calculo_epsilon(int i, int I, double ** D, double y_salida[]){
+  double error ;
+  for(int k = 0; k < I; k++){
+    error += 0.5 * pow((D[i][k]-y_salida[k]),2);
   }
-
+  error = error / I;
+  return error;
 }
 
 //funcion para calcular delta de capa de salida
 //tengo duda de como invocar a sigmoide primo
-double * delta_salida(int I, int J, double * salida, double * answers, double * ocultas, double ** w2){
-
-  double error[I];
-  double net[I];
-  double delta[I];
-
-  for(int i = 0; i < I; i++){
-    error[i] = answers[i]-salida[i];
+void delta_salida(int i, int I, double ** D, double deltas_salida[],double net_salida[],double y_salida[], double (*g_prima)(double x) ){
+  for(int j = 0; j < I; j++){
+    deltas_salida[j] = (D[i][j]-y_salida[j]) * g_prima(net_salida[j]);
   }
-
-  //neuronas de salida
-  for(int i=0; i<I; i++){
-    for (int k=0; k<J; k++ ){
-          net[i] += w2[i][k] * ocultas[k];      //obtenemos net de la capa de salida
-          net[i] = sigmoid_prime(net[i]);       //revisar esto porq sigmoide prima recibe un double no un vector
-    }
-  }
-
-  //guardamos los valores multiplicados ya en el vector delta_salida
-  for(int i = 0; i < I; i++){
-    delta[i] = error[i]*net[i];
-  }
-  
 }
 
-//correcion de pesos hidden-output
-double ** correcion_pesos_HO(int I, double eta, double * ocultas, double delta[I]){
+//double * cambio_oculta()
 
-//se multiplican los vectores ocultas y delta y la matriz resultante se multiplia por eta
-
-
-}
+// //correcion de pesos hidden-output
+// double ** correcion_pesos_HO(int I, double eta, double * ocultas, double delta[I]){
+//
+// //se multiplican los vectores ocultas y delta y la matriz resultante se multiplia por eta
+//
+//
+// }
 
 
 
@@ -107,7 +110,7 @@ int main(int argc, char **argv) {
    epsilon = error maximo permitido
    fractionTrainingPatterns = porcentaje de los patrones P usados para entrenamiento
    ActivationFunction = tipo de funcion de activacion: sigmoid, tanh
-   Training = estrategia de entrenamiento: continuous, batch, hybrid
+   Training = estrategia de entren   double ocultas[], y_oculta[J], net_salida[I], y_salida[I], error, delta_salida[I];amiento: continuous, batch, hybrid
    Pattern = arreglo para guardar los patrones en memoria
    D = arreglo para guardar las salidas esperadas en memoria
 
@@ -123,14 +126,13 @@ int main(int argc, char **argv) {
    int I, J, K, L, P, PT, MaxEpocs, Group;
    int i, j, k, l, p, pt;  //contadores y subindices
    double eta, alfa, epsilon, fractionTrainingPatterns, azar;
-   double Pattern[5000][100], D[5000][100];
+   double Pattern[600][100], D[600][100];
    char symbol, ActivationFunction[20], Training[20], keyword[20], filename[50];
 
 
-   double w1[100][100], w2[100][100], w1n[100][100], w2n[100][100];
+   double w1[100][100], w2[100][100], w1v[100][100], w2v[100][100];
    //vectores que contienen los outputs de la capa de salida y de la capa oculta
-   double ocultas[J], salida[I], answers[I]; //answers son los datos conocidos que se pasan en training
-
+   double net_ocultas[J], y_oculta[J], net_salida[I], y_salida[I], delta_salida[I];
    FILE* fd;
 
    /* Se inicializa la semilla para numeros aleatorios (random seed) */
@@ -195,6 +197,9 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
    if (strcmp(ActivationFunction,"sigmoid") == 0) g = sigmoid;
    else g = tanh;
 
+   if (strcmp(ActivationFunction,"sigmoid") == 0) g_prima = sigmoid_prima;
+   else g = tanh;
+
    if (strcmp(Training,"continuous") == 0) Group = 1;
    else if (strcmp(Training,"batch") == 0) Group = PT;
    else Group = L;
@@ -225,11 +230,20 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
        w1[j][i] = azar = 2.0 * ((double)rand() / (double)RAND_MAX) - 1.0; //genera número aleatorio entre [-1, 1]
      }
    }
+
+
+/*
+
+
    for (k=1; k<=K; k++){
      for (j=1; j<=J; j++)
         printf("%lf  ", w1[k][j]);
      printf("\n");
    }
+
+
+   */
+
    //FORWARD PROPAGATION
    // for (i = 0; i < PT; i++){
    //   for (j = 0; j )
