@@ -32,8 +32,8 @@ g = funcion de activacion
 double * forward_propagation(int i, double ** Pattern, double * ocultas, double * salida, double ** w1, double ** w2, int PT, int K, int I, int L, int J, double (*g)(double x)){
   //neuronas de entrada
   //corre L patrones
-  for (int k = 1; k<=K; k<++){
-    for (int j=1; j<J; j++ ){
+  for (int k = 1; k<=K; k++){
+    for (int j = 1; j<J; j++ ){
           ocultas[i] += g(Pattern[i][k] * w1[k][j]);
     }
   }
@@ -43,7 +43,54 @@ double * forward_propagation(int i, double ** Pattern, double * ocultas, double 
           salida[i] += g(w2[i][k] * ocultas[k]);
     }
   }
+
+} //fin de feedforward
+
+//funcion para calcular epsilon (error maximo permitido)
+double * calculo_epsilon(int I, double * salida, double * answers){
+  double error[I] ;
+  for(int i = 0; i < I; i++){
+    error[i] = 0.5 * pow((answers[i]-salida[i]),2);
+  }
+
 }
+
+//funcion para calcular delta de capa de salida
+//tengo duda de como invocar a sigmoide primo
+double * delta_salida(int I, int J, double * salida, double * answers, double * ocultas, double ** w2){
+
+  double error[I];
+  double net[I];
+  double delta[I];
+
+  for(int i = 0; i < I; i++){
+    error[i] = answers[i]-salida[i];
+  }
+
+  //neuronas de salida
+  for(int i=0; i<I; i++){
+    for (int k=0; k<J; k++ ){
+          net[i] += w2[i][k] * ocultas[k];      //obtenemos net de la capa de salida
+          net[i] = sigmoid_prime(net[i]);       //revisar esto porq sigmoide prima recibe un double no un vector
+    }
+  }
+
+  //guardamos los valores multiplicados ya en el vector delta_salida
+  for(int i = 0; i < I; i++){
+    delta[i] = error[i]*net[i];
+  }
+  
+}
+
+//correcion de pesos hidden-output
+double ** correcion_pesos_HO(int I, double eta, double * ocultas, double delta[I]){
+
+//se multiplican los vectores ocultas y delta y la matriz resultante se multiplia por eta
+
+
+}
+
+
 
 int main(int argc, char **argv) {
    /* Se declaran las variables siguientes:
@@ -71,8 +118,8 @@ int main(int argc, char **argv) {
    w2 = pesos neuronas ocultas-neuronas salidas (JxI)
    w1v = w1 viejo
    w2v = w2 viejo
-
    */
+
    int I, J, K, L, P, PT, MaxEpocs, Group;
    int i, j, k, l, p, pt;  //contadores y subindices
    double eta, alfa, epsilon, fractionTrainingPatterns, azar;
@@ -81,8 +128,8 @@ int main(int argc, char **argv) {
 
 
    double w1[100][100], w2[100][100], w1n[100][100], w2n[100][100];
-   //vectores que contienen los outputs de la capa de entrada y de la capa oculta
-   double ocultas[J], salida[I];
+   //vectores que contienen los outputs de la capa de salida y de la capa oculta
+   double ocultas[J], salida[I], answers[I]; //answers son los datos conocidos que se pasan en training
 
    FILE* fd;
 
