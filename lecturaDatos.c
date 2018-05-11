@@ -13,24 +13,35 @@ double sigmoid_prima(double x){
     return (exp(x)/((exp(x)+1)*(exp(x)+1)));
 }  //esto es un puntero a alguna funcion definida luego
 
+double tanh_prima(double x){
+    return (1-pow(tanh(x),2));
+}  //esto es un puntero a alguna funcion definida luego
+
 double (*g)(double x);  //esto es un puntero a alguna funcion definida luego
 double (*g_prima)(double x);  //esto es un puntero a alguna funcion definida luego
 
-/*
-Parametros:
-i = numero de patron que toca evaluar
-Pattern = matriz de patrones
-ocultas = vector de tamaño J que contiene el output de la neuronas ocultas
-salida = vector de tamaño I que contiene el output de la neuronas de salida
-w1 = pesos neuronas entrada-neuronas ocultas ()
-w2 = pesos neuronas ocultas-neuronas salidas
-PT = numero de patrones de entrenamiento
-K = numero de neuronas de entrada en la capa 0, en realidad K+1: 0, 1, 2, …, K
-I = numero de neuronas de salida en la capa 2: 1, 2, …, I
-L = numero de patrones agrupados si se usa entrenamiento hibrido
-J = numero de neuronas ocultas en la capa 1, en realidad J+1: 0, 1, 2, …, J
-g = funcion de activacion
-*/
+// P normaliado = P / norma P
+void normaliza(int P, int K, double Pattern[P][K]){
+  double suma[P];
+  double norma[P];
+  for (int p=0; p<P; p++){
+    for(int k=0; k<K; k++){
+      suma[p] += pow(Pattern[p][k],2);
+    }
+  }
+  for(int p=0; p<P; p++){
+    norma[p] = sqrt(suma[p]);
+  }
+  for (int p=0; p<P; p++){
+    for(int k=0; k<K; k++){
+      if (norma[p] != 0)
+      Pattern[p][k] = Pattern[p][k] / norma[p];
+      else{
+        Pattern[p][k] = 0;
+      }
+    }
+  }
+}
 
 void net_oculta(int i, int K, int J, double ** w1, double ** Pattern, double net_ocultas[]){
   for (int k = 1; k<=K; k++){
@@ -66,7 +77,7 @@ void y_salida(int I, double y_salida[],double net_salida[], double (*g)(double x
 
 
 //funcion para calcular epsilon (error maximo permitido)
-  double calculo_epsilon(int i, int I, double ** D, double y_salida[]){
+double calculo_epsilon(int i, int I, double ** D, double y_salida[]){
   double error ;
   for(int k = 0; k < I; k++){
     error += 0.5 * pow((D[i][k]-y_salida[k]),2);
@@ -77,22 +88,40 @@ void y_salida(int I, double y_salida[],double net_salida[], double (*g)(double x
 
 //funcion para calcular delta de capa de salida
 //tengo duda de como invocar a sigmoide primo
-void delta_salida(int i, int I, double ** D, double deltas_salida[],double net_salida[],double y_salida[], double (*g_prima)(double x) ){
+void delta_salida(int i, int I, double ** D, double delta_salida[],double net_salida[],double y_salida[], double (*g_prima)(double x) ){
   for(int j = 0; j < I; j++){
-    deltas_salida[j] = (D[i][j]-y_salida[j]) * g_prima(net_salida[j]);
+    delta_salida[j] = (D[i][j]-y_salida[j]) * g_prima(net_salida[j]);
   }
 }
 
-//double * cambio_oculta()
+void delta_oculta(double delta_salida[], double ** w2, double y_oculta[], int J, int I, double delta_oculta[]){
+  double suma;
+  for (int j=0; j<J; j++){
+    for(int i=0; i<I; i++){
+      suma += (w2[j][i] * delta_salida[i]);
+      delta_oculta[j] = suma * (y_oculta[j] * (1- y_oculta[j]));
+    }
+  }
+}
 
-// //correcion de pesos hidden-output
-// double ** correcion_pesos_HO(int I, double eta, double * ocultas, double delta[I]){
-//
-// //se multiplican los vectores ocultas y delta y la matriz resultante se multiplia por eta
-//
-//
-// }
-
+// calcula y aplica cambios de pesos para neuronas en cualquier capa
+// tam1 = tamaño capa A
+// tam2 = tamaño capa B
+// A -> B
+void cambio_peso(double eta, double salida_capa[], double delta_capa[], int tam1, int tam2, double ** w, double ** cambio_w, double ** w_viejo){
+  //calcula cambio
+  for (int i=0; i<tam1; i++){
+    for (int j=0; j<tam2; j++)
+      cambio_w[i][j] = eta * delta_capa[j] * salida_capa[i];
+  }
+  //almacena pesos viejos
+  w_viejo = w;
+  //modifica w
+  for (int i=0; i<tam1; i++){
+    for (int j=0; j<tam2; j++)
+      w[i][j] += cambio_w[i][j];
+  }
+}
 
 
 int main(int argc, char **argv) {
@@ -130,9 +159,9 @@ int main(int argc, char **argv) {
    char symbol, ActivationFunction[20], Training[20], keyword[20], filename[50];
 
 
-   double w1[100][100], w2[100][100], w1v[100][100], w2v[100][100];
+   double w1[100][100], w2[100][100], w1v[100][100], w2v[100][100], cambio_w1[100][100], cambio_w2[100][100];
    //vectores que contienen los outputs de la capa de salida y de la capa oculta
-   double net_ocultas[J], y_oculta[J], net_salida[I], y_salida[I], delta_salida[I];
+   double net_ocultas[J], y_oculta[J], net_salida[I], y_salida[I], delta_salida[I], delta_oculta[J];
    FILE* fd;
 
    /* Se inicializa la semilla para numeros aleatorios (random seed) */
@@ -198,7 +227,7 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
    else g = tanh;
 
    if (strcmp(ActivationFunction,"sigmoid") == 0) g_prima = sigmoid_prima;
-   else g = tanh;
+   else g_prima = tanh_prima;
 
    if (strcmp(Training,"continuous") == 0) Group = 1;
    else if (strcmp(Training,"batch") == 0) Group = PT;
@@ -231,23 +260,23 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
      }
    }
 
+   printf("Los patrones leídos son:\n\n");
+    for (p=0; p<10; p++) {
+        printf("p=%d: D=(%f, %f) -> Pattern=",p, D[p][0], D[p][1]);
+        for (k=0; k<=K; k++)
+           printf("%lf  ", Pattern[p][k]);
+        printf("\n");
+    }
 
-/*
+   normaliza(P, K, Pattern);
 
-
-   for (k=1; k<=K; k++){
-     for (j=1; j<=J; j++)
-        printf("%lf  ", w1[k][j]);
-     printf("\n");
-   }
-
-
-   */
-
-   //FORWARD PROPAGATION
-   // for (i = 0; i < PT; i++){
-   //   for (j = 0; j )
-   // }
+   printf("Los patrones normalizados son:\n\n");
+    for (p=0; p<10; p++) {
+        printf("p=%d: D=(%f, %f) -> Pattern=",p, D[p][0], D[p][1]);
+        for (k=0; k<=K; k++)
+           printf("%lf  ", Pattern[p][k]);
+        printf("\n");
+    }
 
 //Lo que sigue aguí puede eliminarse. Está solo para verificar que los
 //patrones fueron leídos correctamente e ilustrar el llamado a g(x).
