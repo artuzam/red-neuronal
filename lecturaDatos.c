@@ -24,17 +24,17 @@ double (*g_prima)(double x);  //esto es un puntero a alguna funcion definida lue
 void normaliza(int P, int K, double Pattern[P][K]){
   double suma[P];
   double norma[P];
-  for (int p=0; p<P; p++){
+  for (int p=1; p<P; p++){
     for(int k=0; k<K; k++){
       suma[p] += pow(Pattern[p][k],2);
     }
   }
-  for(int p=0; p<P; p++){
+  for(int p=1; p<P; p++){
     norma[p] = sqrt(suma[p]);
   }
-  for (int p=0; p<P; p++){
+  for (int p=1; p<P; p++){
     for(int k=0; k<K; k++){
-      if (norma[p] != 0)
+      if (norma != 0)
       Pattern[p][k] = Pattern[p][k] / norma[p];
       else{
         Pattern[p][k] = 0;
@@ -43,23 +43,23 @@ void normaliza(int P, int K, double Pattern[P][K]){
   }
 }
 
-void net_oculta(int i, int K, int J, double ** w1, double ** Pattern, double net_ocultas[]){
+void net_ocultaf(int i, int P, int K, int J, double w1[K][J], double Pattern[P][K], double net_oculta[J]){
   for (int k = 1; k<=K; k++){
     for (int j = 1; j<J; j++ ){
-          net_ocultas[j] += Pattern[i][k] * w1[k][j];
+          net_oculta[j] += Pattern[i][k] * w1[k][j];
     }
   }
 }
 
 
-void y_oculta(int J, double y_oculta[],double net_oculta[], double (*g)(double x)){
-  for (int i = 0; i < J; i++){
-      y_oculta[i] = g(net_oculta[i]);
+void y_ocultaf(int J, double y_oculta[J],double net_oculta[J], double (*g)(double x)){
+  for (int j = 0; j < J; j++){
+      y_oculta[j] = g(net_oculta[j]);
   }
 }
 
 
- void net_salida(int I, int J, double ** w2, double net_salida[], double y_oculta[]){
+ void net_salidaf(int I, int J, double ** w2, double net_salida[], double y_oculta[]){
   //neuronas ocultas
   for(int i=0; i<I; i++){
     for (int k=0; k<J; k++ ){
@@ -69,7 +69,7 @@ void y_oculta(int J, double y_oculta[],double net_oculta[], double (*g)(double x
 }
 
 
-void y_salida(int I, double y_salida[],double net_salida[], double (*g)(double x)){
+void y_salidaf(int I, double y_salida[],double net_salida[], double (*g)(double x)){
   for (int i = 0; i < I; i++){
       y_salida[i] = g(net_salida[i]);
   }
@@ -88,13 +88,13 @@ double calculo_epsilon(int i, int I, double ** D, double y_salida[]){
 
 //funcion para calcular delta de capa de salida
 //tengo duda de como invocar a sigmoide primo
-void delta_salida(int i, int I, double ** D, double delta_salida[],double net_salida[],double y_salida[], double (*g_prima)(double x) ){
+void delta_salidaf(int i, int I, double ** D, double delta_salida[],double net_salida[],double y_salida[], double (*g_prima)(double x) ){
   for(int j = 0; j < I; j++){
     delta_salida[j] = (D[i][j]-y_salida[j]) * g_prima(net_salida[j]);
   }
 }
 
-void delta_oculta(double delta_salida[], double ** w2, double y_oculta[], int J, int I, double delta_oculta[]){
+void delta_ocultaf(double delta_salida[], double ** w2, double y_oculta[], int J, int I, double delta_oculta[]){
   double suma;
   for (int j=0; j<J; j++){
     for(int i=0; i<I; i++){
@@ -108,14 +108,14 @@ void delta_oculta(double delta_salida[], double ** w2, double y_oculta[], int J,
 // tam1 = tamaño capa A
 // tam2 = tamaño capa B
 // A -> B
-void cambio_peso(double eta, double salida_capa[], double delta_capa[], int tam1, int tam2, double ** w, double ** cambio_w, double ** w_viejo){
+void cambio_peso(double eta, double salida_capa[], double delta_capa[], int tam1, int tam2, double ** w, double ** cambio_w, double ** cambio_viejo){
   //calcula cambio
   for (int i=0; i<tam1; i++){
     for (int j=0; j<tam2; j++)
       cambio_w[i][j] = eta * delta_capa[j] * salida_capa[i];
   }
   //almacena pesos viejos
-  w_viejo = w;
+  cambio_viejo = w;
   //modifica w
   for (int i=0; i<tam1; i++){
     for (int j=0; j<tam2; j++)
@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
 
    double w1[100][100], w2[100][100], w1v[100][100], w2v[100][100], cambio_w1[100][100], cambio_w2[100][100];
    //vectores que contienen los outputs de la capa de salida y de la capa oculta
-   double net_ocultas[J], y_oculta[J], net_salida[I], y_salida[I], delta_salida[I], delta_oculta[J];
+   double net_oculta[J], y_oculta[J], net_salida[I], y_salida[I], delta_salida[I], delta_oculta[J];
    FILE* fd;
 
    /* Se inicializa la semilla para numeros aleatorios (random seed) */
@@ -206,7 +206,7 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
    y se agrega la entrada bias = 1 en la posicion 0 */
    P = 1;
    while (symbol=' ', fscanf(fd, "\n%*[^,],%c", &symbol) != EOF) {
-    printf("P = %d, symbol=%c\n", P, symbol);
+    //printf("P = %d, symbol=%c\n", P, symbol);
     Pattern[P][0] = 1.0;                 // bias = 1
 
     if (symbol == 'M')      {D[P][0] = 1; D[P][1] = 0;}   // cancer Maligno = (1, 0)
@@ -261,22 +261,42 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
    }
 
    printf("Los patrones leídos son:\n\n");
-    for (p=0; p<10; p++) {
+    for (p=0; p<5; p++) {
         printf("p=%d: D=(%f, %f) -> Pattern=",p, D[p][0], D[p][1]);
         for (k=0; k<=K; k++)
            printf("%lf  ", Pattern[p][k]);
         printf("\n");
     }
 
-   normaliza(P, K, Pattern);
+   // normaliza(P, K, Pattern);
+   //
+   // printf("Los patrones normalizados son:\n\n");
+   //  for (p=0; p<5 ; p++) {
+   //      printf("p=%d: D=(%f, %f) -> Pattern=",p, D[p][0], D[p][1]);
+   //      for (k=0; k<=K; k++)
+   //         printf("%lf  ", Pattern[p][k]);
+   //      printf("\n");
+   //  }
 
-   printf("Los patrones normalizados son:\n\n");
-    for (p=0; p<10; p++) {
-        printf("p=%d: D=(%f, %f) -> Pattern=",p, D[p][0], D[p][1]);
-        for (k=0; k<=K; k++)
-           printf("%lf  ", Pattern[p][k]);
-        printf("\n");
-    }
+   //prueba net_oculta
+   for(int i=0; i<5; i++)
+    net_ocultaf(i, P, K, J, w1, Pattern, net_oculta);
+
+    printf("NET_OCULTA");
+    printf("\n");
+   for(int i=0; i<J; i++){
+     printf("%lf  ", net_oculta[i]);
+   }
+
+   //prueba y_oculta
+   for(int i=0; i<5; i++)
+    y_ocultaf(J, y_oculta, net_oculta, g);
+
+   printf("Y_OCULTA");
+   printf("\n");
+   for(int i=0; i<J; i++){
+     printf("%lf  ", y_oculta[i]);
+   }
 
 //Lo que sigue aguí puede eliminarse. Está solo para verificar que los
 //patrones fueron leídos correctamente e ilustrar el llamado a g(x).
