@@ -43,34 +43,37 @@ void normaliza(int P, int K, double Pattern[P][K]){
   }
 }
 
-void net_ocultaf(int i, int P, int K, int J, double w1[K][J], double Pattern[P][K], double net_oculta[J]){
-  for (int k = 1; k<=K; k++){
-    for (int j = 1; j<J; j++ ){
+void net_ocultaf(int i, int P, int K, int J, double w1[K][J+1], double Pattern[P][K], double net_oculta[J+1]){
+
+  for (int j = 1; j<J+1; j++){
+    for (int k = 0; k<K; k++ ){
           net_oculta[j] += Pattern[i][k] * w1[k][j];
     }
   }
 }
 
 
-void y_ocultaf(int J, double y_oculta[J],double net_oculta[J], double (*g)(double x)){
-  for (int j = 0; j < J; j++){
+void y_ocultaf(int J, double y_oculta[J+1],double net_oculta[J+1], double (*g)(double x)){
+  y_oculta[0] = 1;    //es el valor del bias
+  for (int j = 1; j < J+1; j++){
       y_oculta[j] = g(net_oculta[j]);
   }
 }
 
 
- void net_salidaf(int I, int J, double w2[J][I], double net_salida[I], double y_oculta[J]){
+ void net_salidaf(int I, int J, double w2[J+1][I+1], double net_salida[I+1], double y_oculta[J+1]){
   //neuronas ocultas
-  for(int i=0; i<I; i++){
-    for (int k=0; k<J; k++ ){
-          net_salida[i] += w2[i][k] * y_oculta[k];
+
+  for(int i=1; i<I+1; i++){
+    for (int j=0; j<J+1; j++ ){
+          net_salida[i] += w2[j][i] * y_oculta[j];
     }
   }
 }
 
 
-void y_salidaf(int I, double y_salida[I],double net_salida[I], double (*g)(double x)){
-  for (int i = 0; i < I; i++){
+void y_salidaf(int I, double y_salida[I+1],double net_salida[I+1], double (*g)(double x)){
+  for (int i = 1; i < I+1; i++){
       y_salida[i] = g(net_salida[i]);
   }
 }
@@ -142,10 +145,8 @@ int main(int argc, char **argv) {
    Training = estrategia de entren   double ocultas[], y_oculta[J], net_salida[I], y_salida[I], error, delta_salida[I];amiento: continuous, batch, hybrid
    Pattern = arreglo para guardar los patrones en memoria
    D = arreglo para guardar las salidas esperadas en memoria
-
    ocultas = vector de tamaño J que contiene el output de la neuronas ocultas
    salida = vector de tamaño I que contiene el output de la neuronas de salida
-
    w1 = pesos neuronas entrada-neuronas ocultas (KxJ)
    w2 = pesos neuronas ocultas-neuronas salidas (JxI)
    w1v = w1 viejo
@@ -161,7 +162,7 @@ int main(int argc, char **argv) {
 
    double w1[100][100], w2[100][100], w1v[100][100], w2v[100][100], cambio_w1[100][100], cambio_w2[100][100];
    //vectores que contienen los outputs de la capa de salida y de la capa oculta
-   double net_oculta[J], y_oculta[J], net_salida[I], y_salida[I], delta_salida[I], delta_oculta[J];
+   double net_oculta[J+1], y_oculta[J+1], net_salida[I+1], y_salida[I+1], delta_salida[I+1], delta_oculta[J+1];
    FILE* fd;
 
    /* Se inicializa la semilla para numeros aleatorios (random seed) */
@@ -248,14 +249,14 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
    printf("Funcion de activacion ActivationFunction= %s\n", ActivationFunction);
    printf("Estrategia de entrenamiento Training= %s\n\n", Training);
 
-   for (int k = 1; k <= K; k++){
-     for (int j = 1; j <= J; j++){
+   for (int k = 1; k <= K+1; k++){
+     for (int j = 1; j <= J+1; j++){
        w1[k][j] = azar = 2.0 * ((double)rand() / (double)RAND_MAX) - 1.0; //genera número aleatorio entre [-1, 1]
      }
    }
 
-   for (int j = 1; j <= J; j++){
-     for (int i = 1; i <= I; i++){
+   for (int j = 1; j <= J+1; j++){
+     for (int i = 1; i <= I+1; i++){
        w1[j][i] = azar = 2.0 * ((double)rand() / (double)RAND_MAX) - 1.0; //genera número aleatorio entre [-1, 1]
      }
    }
@@ -279,42 +280,42 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
    //  }
 
    //prueba net_oculta
-   for(int i=0; i<5; i++)
-    net_ocultaf(i, P, K, J, w1, Pattern, net_oculta);
+   //for(int i=0; i<; i++)
+   i = 45;
+  net_ocultaf(i, P, K, J, w1, Pattern, net_oculta);
 
     printf("NET_OCULTA");
     printf("\n");
-   for(int i=0; i<J; i++){
+   for(int i=1; i<J+1; i++){
      printf("%lf  ", net_oculta[i]);
    }
 
-   //prueba y_oculta
-   for(int i=0; i<5; i++)
-    y_ocultaf(J, y_oculta, net_oculta, g);
-
-   printf("Y_OCULTA");
-   printf("\n");
-   for(int i=0; i<J; i++){
-     printf("%lf  ", y_oculta[i]);
-   }
-
-   //prueba net_salida
-    net_salidaf(I, J, w2, net_salida, y_oculta);
-
-    printf("NET_SALIDA");
-    printf("\n");
-   for(int i=0; i<I; i++){
-     printf("%lf  ", net_oculta[i]);
-   }
-
-   //prueba y_salida
-    y_salidaf(I, y_salida,net_salida, g);
-
-   printf("Y_SALIDA");
-   printf("\n");
-   for(int i=0; i<I; i++){
-     printf("%lf  ", y_salida[i]);
-   }
+  //  //prueba y_oculta
+  //  for(int i=0; i<5; i++)
+  //   y_ocultaf(J, y_oculta, net_oculta, g);
+   //
+  //  printf("Y_OCULTA");
+  //  printf("\n");
+  //  for(int i=0; i<J; i++){
+  //    printf("%lf  ", y_oculta[i]);
+  //  }
+   //
+  //  //prueba net_salida
+  //   net_salidaf(I, J, w2, net_salida, y_oculta);
+   //
+  //   printf("NET_SALIDA");
+  //   printf("\n");
+  //  for(int i=0; i<I; i++){
+  //    printf("%lf  ", net_oculta[i]);
+  //  }
+   //
+  //  //prueba y_salida
+  //  y_salidaf(I, y_salida,net_salida, g);
+   //
+  //  printf("Y_SALIDA");
+  //  printf("\n");
+  //  for(int i=0; i<I; i++)
+  //    printf("%lf  ", y_salida[i]);
 
 
 //Lo que sigue aguí puede eliminarse. Está solo para verificar que los
