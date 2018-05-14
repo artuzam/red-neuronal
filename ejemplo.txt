@@ -1,0 +1,20 @@
+K = 2  //número de neuronas de entrada en la capa 0, en realidad K+1: 0, 1, 2, …, K
+J = 1  //número de neuronas ocultas en la capa 1, en realidad J+1: 0, 1, 2, …, J
+I = 1   //número de neuronas de salida en la capa 2: 1, 2, …, I
+eta = 0.12  //tasa de aprendizaje
+alfa = 0.45  //momentum
+MaxEpocs = 500  //máximo de épocas permitidas
+epsilon = 0.25  //error máximo permitido
+L = 5 //número de patrones agrupados si se usa entrenamiento híbrido
+fractionTrainingPatterns = 0.50  //porcentaje de los patrones que se usarán para entrenamiento
+ActivationFunction = tanh  //puede escogerse entre sigmoid y tanh
+Training = hybrid  //puede escogerse entre continuous, batch y hybrid
+---- AQUI EMPIEZAN LOS PATRONES ----
+1, 2, 6
+-1, 1, 3
+1, 4, 6
+1, 8, 5
+-1, 4, 2
+-1, 5, 4
+1, 9, 2
+-1, 6, 3
