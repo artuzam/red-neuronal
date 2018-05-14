@@ -59,7 +59,7 @@ void y_ocultaf(int J, double y_oculta[J],double net_oculta[J], double (*g)(doubl
 }
 
 
- void net_salidaf(int I, int J, double ** w2, double net_salida[], double y_oculta[]){
+ void net_salidaf(int I, int J, double w2[J][I], double net_salida[I], double y_oculta[J]){
   //neuronas ocultas
   for(int i=0; i<I; i++){
     for (int k=0; k<J; k++ ){
@@ -69,7 +69,7 @@ void y_ocultaf(int J, double y_oculta[J],double net_oculta[J], double (*g)(doubl
 }
 
 
-void y_salidaf(int I, double y_salida[],double net_salida[], double (*g)(double x)){
+void y_salidaf(int I, double y_salida[I],double net_salida[I], double (*g)(double x)){
   for (int i = 0; i < I; i++){
       y_salida[i] = g(net_salida[i]);
   }
@@ -297,6 +297,25 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
    for(int i=0; i<J; i++){
      printf("%lf  ", y_oculta[i]);
    }
+
+   //prueba net_salida
+    net_salidaf(I, J, w2, net_salida, y_oculta);
+
+    printf("NET_SALIDA");
+    printf("\n");
+   for(int i=0; i<I; i++){
+     printf("%lf  ", net_oculta[i]);
+   }
+
+   //prueba y_salida
+    y_salidaf(I, y_salida,net_salida, g);
+
+   printf("Y_SALIDA");
+   printf("\n");
+   for(int i=0; i<I; i++){
+     printf("%lf  ", y_salida[i]);
+   }
+
 
 //Lo que sigue aguí puede eliminarse. Está solo para verificar que los
 //patrones fueron leídos correctamente e ilustrar el llamado a g(x).
