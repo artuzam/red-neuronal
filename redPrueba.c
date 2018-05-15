@@ -46,8 +46,8 @@ void normaliza(int P, int K, double Pattern[P][K]){
 void net_ocultaf(int i, int P, int K, int J, double w1[K][J+1], double Pattern[P][K], double net_oculta[J+1]){
 
   for (int j = 1; j<J+1; j++){
-    for (int k = 0; k<K; k++ ){
-          net_oculta[j] += Pattern[i][k] * w1[k][j];
+    for (int k = 1; k<K; k++ ){
+          net_oculta[j] = net_oculta[j] + (Pattern[i][k] * w1[k][j]);
     }
   }
 }
@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
    w2v = w2 viejo
    */
 
-   int I, J, K, L, P, PT, MaxEpocs, Group;
+   int I, J, K, L, P, PT, MaxEpocs, Group, value;
    int i, j, k, l, p, pt;  //contadores y subindices
    double eta, alfa, epsilon, fractionTrainingPatterns, azar;
    double Pattern[600][100], D[600][100];
@@ -206,19 +206,20 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
 /* Se leen y cuentan los patrones. Cada patron posee K entradas en el archivo,
    y se agrega la entrada bias = 1 en la posicion 0 */
    P = 1;
-   while (symbol=' ', fscanf(fd, "\n%*[^,],%c", &symbol) != EOF) {
-    printf("P = %d, symbol=%c\n", P, symbol);
+   while (fscanf(fd, "\n%*[^,],%d", &symbol) != EOF) {
+    printf("P = %d, symbol=%lf\n", P, symbol);
     Pattern[P][0] = 1.0;                 // bias = 1
 
-    if (symbol == 'M')      {D[P][0] = 1; D[P][1] = 0;}   // cancer Maligno = (1, 0)
-    else if (symbol == 'B') {D[P][0] = 0; D[P][1] = 1;}   // cancer Benigno = (0, 1)
+    if (symbol == 1)      {D[P][0] = 1;}   // cancer Maligno = (1, 0)
+    else if (symbol == -1) {D[P][0] = -1;}   // cancer Benigno = (0, 1)
 
     for (k=1; k<=K; k++)
         fscanf(fd, " , %lf", &Pattern[P][k]);
     P++;
    }
+   fscanf(fd, " , %lf", &value);
 
-   PT = P * fractionTrainingPatterns;  // calcula el numero de patrones de entrenamiento
+  PT = P * fractionTrainingPatterns;  // calcula el numero de patrones de entrenamiento
 
 /*Se establece la función de activacion g(x)
   según indica el parámetro ActivationFunction y
@@ -249,8 +250,8 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
    printf("Funcion de activacion ActivationFunction= %s\n", ActivationFunction);
    printf("Estrategia de entrenamiento Training= %s\n\n", Training);
 
-   for (int k = 1; k <= K+1; k++){
-     for (int j = 1; j <= J+1; j++){
+   for (int k = 0; k <= K+1; k++){
+     for (int j = 0; j <= J+1; j++){
        w1[k][j] = azar = 2.0 * ((double)rand() / (double)RAND_MAX) - 1.0; //genera número aleatorio entre [-1, 1]
      }
    }
@@ -261,9 +262,15 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
      }
    }
 
+   for (p=0; p<K+1; p++) {
+       for (k=0; k<=J+1; k++)
+          printf("%lf  ", w1[p][k]);
+       printf("\n");
+   }
+
    printf("Los patrones leídos son:\n\n");
-    for (p=0; p<5; p++) {
-        printf("p=%d: D=(%f, %f) -> Pattern=",p, D[p][0], D[p][1]);
+    for (p=0; p<P; p++) {
+        printf("p=%d: D=(%f) -> Pattern=",p, D[p][0]);
         for (k=0; k<=K; k++)
            printf("%lf  ", Pattern[p][k]);
         printf("\n");
@@ -281,13 +288,13 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
 
    //prueba net_oculta
    //for(int i=0; i<; i++)
-   i = 45;
-  net_ocultaf(i, P, K, J, w1, Pattern, net_oculta);
-
-    printf("NET_OCULTA");
-    printf("\n");
+   i = 2;
+   net_ocultaf(i, P, K, J, w1, Pattern, net_oculta);
+  //
+   printf("NET_OCULTA");
+   printf("\n");
    for(int i=1; i<J+1; i++){
-     printf("%lf  ", net_oculta[i]);
+    printf("%lf  ", net_oculta[i]);
    }
 
   //  //prueba y_oculta

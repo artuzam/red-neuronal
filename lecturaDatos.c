@@ -43,25 +43,27 @@ void normaliza(int P, int K, double Pattern[P][K]){
   }
 }
 
-void net_ocultaf(int i, int P, int K, int J, double w1[K][J+1], double Pattern[P][K], double net_oculta[J+1]){
+void net_ocultaf(int i, int P, int K, int J, double w1[100][100], double Pattern[600][100], double net_oculta[J]){
+  printf("azar: %lf \n", w1[1][1]);
 
   for (int j = 1; j<J+1; j++){
     for (int k = 0; k<K; k++ ){
-          net_oculta[j] += Pattern[i][k] * w1[k][j];
+      net_oculta[j] += Pattern[i][k] * w1[k][j];
     }
   }
 }
 
 
-void y_ocultaf(int J, double y_oculta[J+1],double net_oculta[J+1], double (*g)(double x)){
+void y_ocultaf(int J, double y_oculta[J],double net_oculta[J], double (*g)(double x)){
+  //printf("%lf\n", net_oculta[1]);
   y_oculta[0] = 1;    //es el valor del bias
-  for (int j = 1; j < J+1; j++){
+  for (int j = 1; j < J; j++){
       y_oculta[j] = g(net_oculta[j]);
   }
 }
 
 
- void net_salidaf(int I, int J, double w2[J+1][I+1], double net_salida[I+1], double y_oculta[J+1]){
+ void net_salidaf(int I, int J, double w2[100][100], double net_salida[I+1], double y_oculta[J+1]){
   //neuronas ocultas
 
   for(int i=1; i<I+1; i++){
@@ -80,10 +82,10 @@ void y_salidaf(int I, double y_salida[I+1],double net_salida[I+1], double (*g)(d
 
 
 //funcion para calcular epsilon (error maximo permitido)
-double calculo_epsilon(int i, int I, double ** D, double y_salida[]){
+double calculo_epsilon(int i, int I, int J, double D[600][100], double y_salida[J]){
   double error ;
   for(int k = 0; k < I; k++){
-    error += 0.5 * pow((D[i][k]-y_salida[k]),2);
+    error = 0.5 * pow((D[i][k]-y_salida[k]),2);
   }
   error = error / I;
   return error;
@@ -251,13 +253,15 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
 
    for (int k = 1; k <= K+1; k++){
      for (int j = 1; j <= J+1; j++){
-       w1[k][j] = azar = 2.0 * ((double)rand() / (double)RAND_MAX) - 1.0; //genera número aleatorio entre [-1, 1]
+       azar = ((2 * ((double)rand() / (double)RAND_MAX)) - 1); //genera número aleatorio entre [-1, 1]
+       w1[k][j] = azar;
      }
    }
 
    for (int j = 1; j <= J+1; j++){
      for (int i = 1; i <= I+1; i++){
-       w1[j][i] = azar = 2.0 * ((double)rand() / (double)RAND_MAX) - 1.0; //genera número aleatorio entre [-1, 1]
+       azar = ((2 * ((double)rand() / (double)RAND_MAX)) - 1); //genera número aleatorio entre [-1, 1]
+       w1[j][i] = azar;
      }
    }
 
@@ -268,6 +272,7 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
            printf("%lf  ", Pattern[p][k]);
         printf("\n");
     }
+
 
    // normaliza(P, K, Pattern);
    //
@@ -282,40 +287,42 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
    //prueba net_oculta
    //for(int i=0; i<; i++)
    i = 45;
-  net_ocultaf(i, P, K, J, w1, Pattern, net_oculta);
+   printf("azar: %lf \n", w1[1][1]);
+   net_ocultaf(i, P, K, J, w1, Pattern, net_oculta);
 
-    printf("NET_OCULTA");
-    printf("\n");
+   printf("NET_OCULTA");
+   printf("\n");
    for(int i=1; i<J+1; i++){
      printf("%lf  ", net_oculta[i]);
    }
+   printf("\n");
 
-  //  //prueba y_oculta
-  //  for(int i=0; i<5; i++)
-  //   y_ocultaf(J, y_oculta, net_oculta, g);
-   //
-  //  printf("Y_OCULTA");
-  //  printf("\n");
-  //  for(int i=0; i<J; i++){
+   //prueba y_oculta
+   printf("Y_OCULTA");
+   printf("\n");
+   y_ocultaf(J, y_oculta, net_oculta, g);
+  //  for(int i=1; i<J+1; i++){
   //    printf("%lf  ", y_oculta[i]);
   //  }
-   //
-  //  //prueba net_salida
-  //   net_salidaf(I, J, w2, net_salida, y_oculta);
-   //
-  //   printf("NET_SALIDA");
-  //   printf("\n");
-  //  for(int i=0; i<I; i++){
-  //    printf("%lf  ", net_oculta[i]);
-  //  }
-   //
-  //  //prueba y_salida
-  //  y_salidaf(I, y_salida,net_salida, g);
-   //
-  //  printf("Y_SALIDA");
+
+   //prueba net_salida
+   net_salidaf(I, J, w2, net_salida, y_oculta);
+
+   printf("NET_SALIDA\n");
   //  printf("\n");
-  //  for(int i=0; i<I; i++)
-  //    printf("%lf  ", y_salida[i]);
+  //   for(int i=0; i<I; i++){
+  //   printf("%lf  ", net_oculta[i]);
+  //  }
+
+   //prueba y_salida
+   y_salidaf(I, y_salida,net_salida, g);
+
+   printf("Y_SALIDA[1]: %lf \n", y_salida[1]);
+   printf("Y_SALIDA[2]: %lf \n", y_salida[2]);
+   printf("\n");
+
+  //  double err = calculo_epsilon(i, I, J, D, y_salida);
+  //  printf("Error: %lf=>", err);
 
 
 //Lo que sigue aguí puede eliminarse. Está solo para verificar que los
