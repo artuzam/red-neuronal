@@ -155,9 +155,9 @@ int main(int argc, char **argv) {
    w2v = w2 viejo
    */
 
-   int I, J, K, L, P, PT, MaxEpocs, Group;
+   int I, J, K, L, P, PT, MaxEpocs, Group, epochs;
    int i, j, k, l, p, pt, tam1, tam2;  //contadores y subindices
-   double eta, alfa, epsilon, fractionTrainingPatterns, azar;
+   double eta, alfa, epsilon, fractionTrainingPatterns, azar, errorProm, err;
    double Pattern[600][100], D[600][100];
    char symbol, ActivationFunction[20], Training[20], keyword[20], filename[50];
 
@@ -286,74 +286,106 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
 
    //prueba net_oculta
    //for(int i=0; i<; i++)
-   i = 45;
-   printf("azar: %lf \n", w1[1][1]);
-   net_ocultaf(i, P, K, J, w1, Pattern, net_oculta);
+//    i = 45;
+//    printf("azar: %lf \n", w1[1][1]);
+//    net_ocultaf(i, P, K, J, w1, Pattern, net_oculta);
+//
+//    printf("NET_OCULTA");
+//    printf("\n");
+//    for(int i=1; i<J+1; i++){
+//      printf("%lf  ", net_oculta[i]);
+//    }
+//    printf("\n");
+//
+//    //prueba y_oculta
+//    printf("Y_OCULTA");
+//    printf("\n");
+//    y_ocultaf(J, y_oculta, net_oculta, g);
+//    for(int i=1; i<J+1; i++){
+//      printf("%lf  \n", y_oculta[i]);
+//    }
+//
+//
+//    //prueba net_salida
+//    net_salidaf(I, J, w2, net_salida, y_oculta);
+//
+//    printf("NET_SALIDA \n");
+//    printf("\n");
+//     for(int i=0; i<I; i++){
+//     printf("%lf  \n", net_oculta[i]);
+//    }
+//
+//    //prueba y_salida
+//    y_salidaf(I, y_salida,net_salida, g);
+//
+//    printf("Y_SALIDA[1]: %lf \n", y_salida[1]);
+//    printf("Y_SALIDA[2]: %lf \n", y_salida[2]);
+//    printf("\n");
+//
+//    //prueba del ERROR
+//    error= calculo_epsilon(i, I, J, D,y_salida);
+//    printf("ERROR: %lf \n", epsilon);
+//
+//    //prueba de delta
+// delta_salidaf(i, I, D, delta_salida,net_salida,y_salida, g);
+//
+//      printf("delta_salida \n");
+//      printf("DELTA_SALIDA[1]: %lf \n", delta_salida[1]);
+//      printf("DELTA_SALIDA[2]: %lf \n", delta_salida[2]);
+//      printf("\n");
+//
+// delta_ocultaf(J, I, delta_salida,w2, y_oculta, delta_oculta);
+// printf("delta_oculta \n");
+// printf("DELTA_OCULTA[2]: %lf \n", delta_oculta[1]);
+// printf("DELTA_OCULTA[3]: %lf \n", delta_oculta[2]);
+// printf("DELTA_OCULTA[4]: %lf \n", delta_oculta[1]);
+// printf("DELTA_OCULTA[5]: %lf \n", delta_oculta[2]);
+// printf("\n");
+//
+// //ajuste de pesos
+// cambio_peso(eta, tam1, tam2, salida_capa, delta_capa, w, cambio_w, cambio_viejo);
+//
+// //pesos modificados
+// printf("pesos modificados \n");
+// printf("w[2]: %lf \n", w[1]);
+// printf("w[3]: %lf \n", w[2]);
+// printf("w[4]: %lf \n", w[3]);
+// printf("w[5]: %lf \n", w[4]);
 
-   printf("NET_OCULTA");
-   printf("\n");
-   for(int i=1; i<J+1; i++){
-     printf("%lf  ", net_oculta[i]);
-   }
-   printf("\n");
+//ENTRENAMIENTO
+while(errorProm > epsilon && epochs < MaxEpocs){
+  for (int pt = 1; pt < PT; pt++){
+    net_ocultaf(pt, P, K, J, w1, Pattern, net_oculta);
+    y_ocultaf(J, y_oculta, net_oculta, g);
+    net_salidaf(I, J, w2, net_salida, y_oculta);
+    y_salidaf(I, y_salida,net_salida, g);
+    errorProm = (calculo_epsilon(i, I, J, D,y_salida))/pt;
+    delta_salidaf(pt, I, D, delta_salida,net_salida,y_salida, g);
+    delta_ocultaf(J, I, delta_salida,w2, y_oculta, delta_oculta);
+    if(pt%Group == 0){
+      cambio_peso(eta, tam1, tam2, salida_capa, delta_capa, w, cambio_w, cambio_viejo);
+    }
+  }
+  epochs ++;
+  printf("Error: %lf\n", errorProm); //despliega el error despues de cada epoca.
+}
+//si salio del while porque el error era el aceptado
+if (errorProm <= epsilon){
+  printf("La red se ha entrenado exitosamente!\n");
+}
+else{ //salio del while porque supero el maximo de epocas aceptado
+  printf("La red no ha podido ser entrenada. Intente modificar los parametros.\n");
+}
 
-   //prueba y_oculta
-   printf("Y_OCULTA");
-   printf("\n");
-   y_ocultaf(J, y_oculta, net_oculta, g);
-   for(int i=1; i<J+1; i++){
-     printf("%lf  \n", y_oculta[i]);
-   }
-
-
-   //prueba net_salida
-   net_salidaf(I, J, w2, net_salida, y_oculta);
-
-   printf("NET_SALIDA \n");
-   printf("\n");
-    for(int i=0; i<I; i++){
-    printf("%lf  \n", net_oculta[i]);
-   }
-
-   //prueba y_salida
-   y_salidaf(I, y_salida,net_salida, g);
-
-   printf("Y_SALIDA[1]: %lf \n", y_salida[1]);
-   printf("Y_SALIDA[2]: %lf \n", y_salida[2]);
-   printf("\n");
-
-   //prueba del ERROR
-   epsilon = calculo_epsilon(i, I, J, D,y_salida);
-   printf("ERROR: %lf \n", epsilon);
-
-   //prueba de delta
-delta_salidaf(i, I, D, delta_salida,net_salida,y_salida, g);
-
-     printf("delta_salida \n");
-     printf("DELTA_SALIDA[1]: %lf \n", delta_salida[1]);
-     printf("DELTA_SALIDA[2]: %lf \n", delta_salida[2]);
-     printf("\n");
-
-delta_ocultaf(delta_salida,w2, y_oculta, J, I, delta_oculta);
-printf("delta_oculta \n");
-printf("DELTA_OCULTA[2]: %lf \n", delta_oculta[1]);
-printf("DELTA_OCULTA[3]: %lf \n", delta_oculta[2]);
-printf("DELTA_OCULTA[4]: %lf \n", delta_oculta[1]);
-printf("DELTA_OCULTA[5]: %lf \n", delta_oculta[2]);
-printf("\n");
-
-//ajuste de pesos
-cambio_peso(eta, salida_capa, delta_capa, tam1, tam2, w, cambio_w, cambio_viejo);
-
-//pesos modificados
-printf("pesos modificados \n");
-printf("w[2]: %lf \n", w[1]);
-printf("w[3]: %lf \n", w[2]);
-printf("w[4]: %lf \n", w[3]);
-printf("w[5]: %lf \n", w[4]);
-
-  
-
+//PRODUCCION (PERFORMANCE)
+for (int p = PT; p < P; p++){
+  net_ocultaf(p, P, K, J, w1, Pattern, net_oculta);
+  y_ocultaf(J, y_oculta, net_oculta, g);
+  net_salidaf(I, J, w2, net_salida, y_oculta);
+  y_salidaf(I, y_salida,net_salida, g);
+  err = (calculo_epsilon(i, I, J, D,y_salida))/pt;
+  printf("Error parametro %d: %lf\n", p, err);
+}
 //Lo que sigue aguí puede eliminarse. Está solo para verificar que los
 //patrones fueron leídos correctamente e ilustrar el llamado a g(x).
 
