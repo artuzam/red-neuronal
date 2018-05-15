@@ -92,14 +92,14 @@ double calculo_epsilon(int i, int I, int J, double D[600][100], double y_salida[
 }
 
 //funcion para calcular delta de capa de salida
-//tengo duda de como invocar a sigmoide primo
-void delta_salidaf(int i, int I, double ** D, double delta_salida[],double net_salida[],double y_salida[], double (*g_prima)(double x) ){
+
+void delta_salidaf(int i, int I, double D[600][100], double delta_salida[I+1],double net_salida[I+1],double y_salida[I+1], double (*g_prima)(double x) ){
   for(int j = 0; j < I; j++){
     delta_salida[j] = (D[i][j]-y_salida[j]) * g_prima(net_salida[j]);
   }
 }
 
-void delta_ocultaf(double delta_salida[], double ** w2, double y_oculta[], int J, int I, double delta_oculta[]){
+void delta_ocultaf(int J, int I, double delta_salida[I+1], double w2[100][100], double y_oculta[J+1], double delta_oculta[J+1]){
   double suma;
   for (int j=0; j<J; j++){
     for(int i=0; i<I; i++){
@@ -113,7 +113,7 @@ void delta_ocultaf(double delta_salida[], double ** w2, double y_oculta[], int J
 // tam1 = tamaño capa A
 // tam2 = tamaño capa B
 // A -> B
-void cambio_peso(double eta, double salida_capa[], double delta_capa[], int tam1, int tam2, double ** w, double ** cambio_w, double ** cambio_viejo){
+void cambio_peso(double eta,  int tam1, int tam2, double salida_capa[tam1], double delta_capa[tam2],double w[100][100], double cambio_w[100][100], double cambio_viejo[100][100]){
   //calcula cambio
   for (int i=0; i<tam1; i++){
     for (int j=0; j<tam2; j++)
@@ -156,15 +156,15 @@ int main(int argc, char **argv) {
    */
 
    int I, J, K, L, P, PT, MaxEpocs, Group;
-   int i, j, k, l, p, pt;  //contadores y subindices
+   int i, j, k, l, p, pt, tam1, tam2;  //contadores y subindices
    double eta, alfa, epsilon, fractionTrainingPatterns, azar;
    double Pattern[600][100], D[600][100];
    char symbol, ActivationFunction[20], Training[20], keyword[20], filename[50];
 
 
-   double w1[100][100], w2[100][100], w1v[100][100], w2v[100][100], cambio_w1[100][100], cambio_w2[100][100];
+   double w1[100][100], w2[100][100], cambio_w[100][100], cambio_viejo[100][100], w[100][100];
    //vectores que contienen los outputs de la capa de salida y de la capa oculta
-   double net_oculta[J+1], y_oculta[J+1], net_salida[I+1], y_salida[I+1], delta_salida[I+1], delta_oculta[J+1];
+   double net_oculta[J+1], y_oculta[J+1], net_salida[I+1], y_salida[I+1], delta_salida[I+1], delta_oculta[J+1], salida_capa[tam1],delta_capa[tam2];
    FILE* fd;
 
    /* Se inicializa la semilla para numeros aleatorios (random seed) */
@@ -301,18 +301,19 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
    printf("Y_OCULTA");
    printf("\n");
    y_ocultaf(J, y_oculta, net_oculta, g);
-  //  for(int i=1; i<J+1; i++){
-  //    printf("%lf  ", y_oculta[i]);
-  //  }
+   for(int i=1; i<J+1; i++){
+     printf("%lf  \n", y_oculta[i]);
+   }
+
 
    //prueba net_salida
    net_salidaf(I, J, w2, net_salida, y_oculta);
 
-   printf("NET_SALIDA\n");
-  //  printf("\n");
-  //   for(int i=0; i<I; i++){
-  //   printf("%lf  ", net_oculta[i]);
-  //  }
+   printf("NET_SALIDA \n");
+   printf("\n");
+    for(int i=0; i<I; i++){
+    printf("%lf  \n", net_oculta[i]);
+   }
 
    //prueba y_salida
    y_salidaf(I, y_salida,net_salida, g);
@@ -321,9 +322,37 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
    printf("Y_SALIDA[2]: %lf \n", y_salida[2]);
    printf("\n");
 
-  //  double err = calculo_epsilon(i, I, J, D, y_salida);
-  //  printf("Error: %lf=>", err);
+   //prueba del ERROR
+   epsilon = calculo_epsilon(i, I, J, D,y_salida);
+   printf("ERROR: %lf \n", epsilon);
 
+   //prueba de delta
+delta_salidaf(i, I, D, delta_salida,net_salida,y_salida, g);
+
+     printf("delta_salida \n");
+     printf("DELTA_SALIDA[1]: %lf \n", delta_salida[1]);
+     printf("DELTA_SALIDA[2]: %lf \n", delta_salida[2]);
+     printf("\n");
+
+delta_ocultaf(delta_salida,w2, y_oculta, J, I, delta_oculta);
+printf("delta_oculta \n");
+printf("DELTA_OCULTA[2]: %lf \n", delta_oculta[1]);
+printf("DELTA_OCULTA[3]: %lf \n", delta_oculta[2]);
+printf("DELTA_OCULTA[4]: %lf \n", delta_oculta[1]);
+printf("DELTA_OCULTA[5]: %lf \n", delta_oculta[2]);
+printf("\n");
+
+//ajuste de pesos
+cambio_peso(eta, salida_capa, delta_capa, tam1, tam2, w, cambio_w, cambio_viejo);
+
+//pesos modificados
+printf("pesos modificados \n");
+printf("w[2]: %lf \n", w[1]);
+printf("w[3]: %lf \n", w[2]);
+printf("w[4]: %lf \n", w[3]);
+printf("w[5]: %lf \n", w[4]);
+
+  
 
 //Lo que sigue aguí puede eliminarse. Está solo para verificar que los
 //patrones fueron leídos correctamente e ilustrar el llamado a g(x).

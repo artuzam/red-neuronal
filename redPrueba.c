@@ -43,25 +43,26 @@ void normaliza(int P, int K, double Pattern[P][K]){
   }
 }
 
-void net_ocultaf(int i, int P, int K, int J, double w1[K][J+1], double Pattern[P][K], double net_oculta[J+1]){
-
+void net_ocultaf(int i, int P, int K, int J, double w1[100][100], double Pattern[600][100], double net_oculta[J]){
+printf("azar: %lf \n", w1[1][1]);
   for (int j = 1; j<J+1; j++){
-    for (int k = 1; k<K; k++ ){
-          net_oculta[j] = net_oculta[j] + (Pattern[i][k] * w1[k][j]);
+    for (int k = 0; k<K; k++ ){
+          net_oculta[j] += Pattern[i][k] * w1[k][j];
     }
   }
 }
 
 
-void y_ocultaf(int J, double y_oculta[J+1],double net_oculta[J+1], double (*g)(double x)){
+
+void y_ocultaf(int J, double y_oculta[J],double net_oculta[J], double (*g)(double x)){
   y_oculta[0] = 1;    //es el valor del bias
-  for (int j = 1; j < J+1; j++){
+  for (int j = 1; j < J; j++){
       y_oculta[j] = g(net_oculta[j]);
   }
 }
 
 
- void net_salidaf(int I, int J, double w2[J+1][I+1], double net_salida[I+1], double y_oculta[J+1]){
+ void net_salidaf(int I, int J, double w2[200][100], double net_salida[I+1], double y_oculta[J+1]){
   //neuronas ocultas
 
   for(int i=1; i<I+1; i++){
@@ -72,11 +73,14 @@ void y_ocultaf(int J, double y_oculta[J+1],double net_oculta[J+1], double (*g)(d
 }
 
 
+
 void y_salidaf(int I, double y_salida[I+1],double net_salida[I+1], double (*g)(double x)){
   for (int i = 1; i < I+1; i++){
       y_salida[i] = g(net_salida[i]);
   }
 }
+
+
 
 
 //funcion para calcular epsilon (error maximo permitido)
@@ -288,14 +292,36 @@ printf("Parametros leidos. Ahora se leen y cuentan los patrones\n");
 
    //prueba net_oculta
    //for(int i=0; i<; i++)
-   i = 2;
+   i = 1;
+   printf("azar: %lf \n", w1[1][1]);
    net_ocultaf(i, P, K, J, w1, Pattern, net_oculta);
-  //
+
    printf("NET_OCULTA");
    printf("\n");
    for(int i=1; i<J+1; i++){
-    printf("%lf  ", net_oculta[i]);
+     printf("%lf  ", net_oculta[i]);
    }
+   printf("\n");
+
+
+   //prueba y_oculta
+   printf("Y_OCULTA");
+   printf("\n");
+   y_ocultaf(J, y_oculta, net_oculta, g);
+   for(int i=1; i<J+1; i++){
+     printf("%lf  ", y_oculta[i]);
+   }
+
+   //prueba net_salida
+   net_salidaf(I, J, w2, net_salida, y_oculta);
+
+   //prueba y_salida
+   y_salidaf(I, y_salida,net_salida, g);
+
+   printf("Y_SALIDA[1]: %lf \n", y_salida[1]);
+   printf("Y_SALIDA[2]: %lf \n", y_salida[2]);
+   printf("\n");
+
 
   //  //prueba y_oculta
   //  for(int i=0; i<5; i++)
